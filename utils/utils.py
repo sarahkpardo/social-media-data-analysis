@@ -1,3 +1,4 @@
+from collections import Counter
 import datetime
 import functools
 import itertools
@@ -147,3 +148,43 @@ class TweetsData(object):
 
     def to_np(self):
         return np.to_array(self.df)
+    
+def get_unique_ids(campaign, campaign_users):
+    campaign_userids = (campaign_users
+           .groupby('userid')
+           .size()
+           .index
+          )
+    tweet_userids = (campaign
+                   .groupby('userid')
+                   .size()
+                   .index
+                  )
+    retweet_userids = (campaign
+                   .loc[:]['retweet_userid']
+                   .dropna()
+                  )
+    reply_userids = (campaign
+                   .loc[:]['in_reply_to_userid']
+                   .dropna()
+                  )
+    mention_userids = (campaign['user_mentions']
+                # expand usernames into columns
+                .explode()
+                # melt wide table into duplicated tweets
+                .reset_index()
+                .melt(id_vars=['tweetid'],
+                      value_name='mentioned_userid')
+                # clean up
+                .astype({'mentioned_userid':'string'})
+                .drop(columns=['variable'])
+                .join(campaign['userid'], on='tweetid')
+                .dropna()
+               ).loc[:]['mentioned_userid']
+    
+    return Counter(list(itertools.chain(*[campaign_userids,
+                                            tweet_userids,
+                                            retweet_userids,
+                                            reply_userids,
+                                            mention_userids,
+                                           ])))
