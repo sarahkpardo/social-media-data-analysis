@@ -11,7 +11,6 @@ from timeit import default_timer
 import numpy as np
 import pandas as pd
 
-
 def mean_normalize(df):
     return (df - df.mean()) / df.std()
 
@@ -96,7 +95,7 @@ class UsersData(object):
 
     def to_np(self):
         return np.to_array(self.df)
-        
+
 
 class TweetsData(object):
     """Class for generating dataframe from csv dataset of tweets."""
@@ -148,7 +147,7 @@ class TweetsData(object):
 
     def to_np(self):
         return np.to_array(self.df)
-    
+
 def get_unique_ids(campaign, campaign_users):
     campaign_userids = (campaign_users
            .groupby('userid')
@@ -181,7 +180,7 @@ def get_unique_ids(campaign, campaign_users):
                 .join(campaign['userid'], on='tweetid')
                 .dropna()
                ).loc[:]['mentioned_userid']
-    
+
     return Counter(list(itertools.chain(*[campaign_userids,
                                             tweet_userids,
                                             retweet_userids,
