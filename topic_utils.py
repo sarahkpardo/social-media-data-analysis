@@ -50,43 +50,17 @@ def plot_top_words(model, feature_names, n_top_words, title, n_components):
     plt.subplots_adjust(top=0.90, bottom=0.05, wspace=0.90, hspace=0.3)
     plt.show()
 
-def extract_topics(documents,
-                   n_samples = 2000,
-                   n_features = 1000,
-                   n_components = 10,
-                   n_top_words = 20):
 
-    processed_documents = (documents
-                         .map(long_string)
-                         .map(preprocess_string)
-                        )
-
-    vectorizer = CountVectorizer(max_df=0.95,
-                             min_df=2,
-                             max_features=n_features,
-                             analyzer='word',
-                             stop_words=stop_words)
-
-    tf = vectorizer.fit_transform(processed_documents)
-
-    print(('n_samples: {}\nn_features: {}')
-          .format(n_samples, n_features))
-
-    lda = LatentDirichletAllocation(n_components=n_components,
-                                    max_iter=5,
-                                    learning_method='online',
-                                    learning_offset=50.,
-                                    random_state=0)
-
-    lda.fit(tf)
-
-    tf_feature_names = vectorizer.get_feature_names()
-
-    plot_top_words(lda,
-                   tf_feature_names,
-                   n_top_words,
-                   'Categories in LDA model')
-    plt.tight_layout()
+    vectorizer = CountVectorizer(analyzer='word',
+                                 strip_accents='ascii',
+                                 stop_words=[*stopwords.words(),
+                                              '<-url->', '<-@->', '<-#->', ],
+                                 ngram_range=(1,2),
+                                 preprocessor=preprocess_string,
+                                 tokenizer=TweetTokenizer(preserve_case=False,
+                                           reduce_len=True,
+                                           strip_handles=True).tokenize
+                                )
     
     
 
