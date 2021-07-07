@@ -28,7 +28,7 @@ stop_words = [*stopwords.words(),
               '<-url->', '<-@->', '<-#->', ]
 
 
-def plot_top_words(model, feature_names, n_top_words, title):
+def plot_top_words(model, feature_names, n_top_words, title, n_components):
     fig, axes = plt.subplots(2, 5, figsize=(30, 15), sharex=True)
     axes = axes.flatten()
 
