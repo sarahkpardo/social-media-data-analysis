@@ -23,6 +23,9 @@ def fill_mean(df, groups, col):
           .transform(lambda x: x.fillna(x.mean()))
          )
 
+def sort_dict(dictionary):
+    return sorted(counts.items(), key=lambda item: item[1], reverse=True)
+
 def str_to_list(string):
     """Convert a single list-formatted string into a list of strings."""
     string = re.sub(r"[\[\]\']", "", string)

@@ -24,18 +24,16 @@ from sklearn.metrics import accuracy_score
 import sklearn
 from sklearn.feature_extraction.text import CountVectorizer
 
-stop_words = [*stopwords.words(),
-              '<-url->', '<-@->', '<-#->', ]
-tokenizer = TweetTokenizer(preserve_case=False,
-                       reduce_len=True,
-                       strip_handles=True)
 
-
-def plot_top_words(model, feature_names, n_top_words, title, n_components):
-    fig, axes = plt.subplots(2, 5, figsize=(30, 15), sharex=True)
+def plot_top_words(model, 
+                   feature_names, 
+                   n_top_words, 
+                   n_components,
+                   title):
+    fig, axes = plt.subplots(2, n_components//2, figsize=(30, 15), sharex=True)
     axes = axes.flatten()
-
-    for topic_idx, topic in enumerate(model.components_):
+    
+    for topic_idx, topic in enumerate(model.components_[:n_components]):
         top_features_ind = topic.argsort()[:-n_top_words - 1:-1]
         top_features = [feature_names[i] for i in top_features_ind]
         weights = topic[top_features_ind]
@@ -54,16 +52,62 @@ def plot_top_words(model, feature_names, n_top_words, title, n_components):
     plt.show()
 
 
+def extract_topics(documents_list,
+                   n_samples = 2000,
+                   n_features = 1000,
+                   n_components = 10,
+                   n_top_words = 20,
+                   apply_preprocessing=True,
+                   stop_words=None,
+                   preprocessor=None,
+                   tokenizer=None):
+    
+    if apply_preprocessing:
+        print('preprocessing...')
+        t1 = default_timer()
+        documents_list = (documents_list
+                         .map(long_string)
+                         .map(preprocess_string)
+                          )
+        print('elapsed: {}'.format(default_timer() - t1))
+    
     vectorizer = CountVectorizer(analyzer='word',
                                  strip_accents='ascii',
                                  stop_words=[*stopwords.words(),
-                                              '<-url->', '<-@->', '<-#->', ],
+                                              '<-url->', '<-@->', '<-#->', 
+                                              '...','`',',','-',"'"],
                                  ngram_range=(1,2),
-                                 preprocessor=preprocess_string,
                                  tokenizer=TweetTokenizer(preserve_case=False,
                                            reduce_len=True,
                                            strip_handles=True).tokenize
                                 )
+
+    print('vectorizing...')
+    t1 = default_timer()
+    tf = vectorizer.fit_transform(documents_list)
+    
+    print('elapsed: {}'.format(default_timer() - t1))
+    
+    
+    print(('LDA:\nn_samples: {}\nn_features: {}')
+          .format(n_samples, n_features))
+
+    lda = LatentDirichletAllocation(n_components=n_components, 
+                                    max_iter=5,
+                                    learning_method='online',
+                                    learning_offset=50.,
+                                    random_state=0)
+
+    lda.fit(tf)
+    
+    tf_feature_names = vectorizer.get_feature_names()
+
+    plot_top_words(lda, 
+                   tf_feature_names, 
+                   n_top_words,
+                   n_components,
+                   'Categories in LDA model')
+    plt.tight_layout()
     
     
 
