@@ -26,6 +26,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 stop_words = [*stopwords.words(),
               '<-url->', '<-@->', '<-#->', ]
+tokenizer = TweetTokenizer(preserve_case=False,
+                       reduce_len=True,
+                       strip_handles=True)
 
 
 def plot_top_words(model, feature_names, n_top_words, title, n_components):
@@ -76,6 +79,18 @@ def long_list(list_of_lists):
     """
     return list(itertools.chain(*list_of_lists))
 
+def long_string(list_of_strings):
+    """
+    Concatenate a list of strings into a single string.
+    """
+    return ' '.join([string for string in list_of_strings])
+
+def long_list(list_of_lists):
+    """
+    Concatenate items from multiple lists into a single list.
+    """
+    return list(itertools.chain(*list_of_lists))
+
 def preprocess_string(string, placeholders=False):
     """Remove symbols; replace urls, hashtags, and user 
        mentions with a placeholder token.
@@ -93,6 +108,7 @@ def preprocess_string(string, placeholders=False):
     
         # hashtags
         string = re.sub(r'#\w+', '<-#->', string)
+        
     else:
         # @-mentions
         string = re.sub(r'@\w+', '', string)
@@ -108,13 +124,17 @@ def preprocess_string(string, placeholders=False):
     string = re.sub(r'[0-9]+', '', string)
     
     # symbols
-    string = re.sub(r'[!"$%&()*+,./:;=?[\]^_`{|}~...]+', '', string)
+    string = re.sub(r'[!"$%&()*+,./:;=?[\]^_`{|}~]+', '', string)
     
     return string
 
-def tokenize_string(input_string, tokenizer=TweetTokenizer(preserve_case=False,
-                                                           reduce_len=True,
-                                                           strip_handles=False)):
+def tokenize_string(input_string, 
+                    stop_words,
+                    tokenizer=TweetTokenizer(preserve_case=False,
+                                             reduce_len=True,
+                                             strip_handles=False),
+                    preprocess=False,
+                   ):
     """Preprocess and tokenize a raw tweet string.
     
     Args:
@@ -124,30 +144,17 @@ def tokenize_string(input_string, tokenizer=TweetTokenizer(preserve_case=False,
     Return:
         tokens: list of strings (tokens)
     """
-    preprocessed = preprocess_string(input_string)
+    if preprocess == True:
+        input_string = preprocess_string(input_string)
     
-    tokens = tokenizer.tokenize(preprocessed)
+    tokens = tokenizer.tokenize(input_string)
     
-    # remove symbol-only tokens
-    tokens = [t for t in tokens if not t in string.punctuation]
+    # remove stop words
+    cache = set(stop_words)
+    no_stop_words = [token for token in tokens
+                     if token.lower() not in cache]
     
-    return tokens
-
-def remove_stopwords(tokens, stopword_list):
-    """Remove unwanted words (``stop words'') from a list of string tokens.
-    
-    Args:
-        tokens: list of tokens to filter
-        stopword_list: list of words to remove
-        
-    Return:
-        filtered_tokens: list of tokens with stop words removed
-    """    
-    cache = set(stopword_list)
-    filtered_tokens = [token for token in tokens
-                       if token.lower() not in cache]
-    
-    return filtered_tokens
+    return no_stop_words
 
 def lemmatize(tokens, lemmatizer):
     """Lemmatize a set of tokens.
@@ -161,34 +168,4 @@ def lemmatize(tokens, lemmatizer):
     """
     lemmatized = [lemmatizer.lemmatize(token) for token in tokens]
     
-    return lemmatized
-
-def remove_stopwords(tokens, stopword_list):
-    """Remove unwanted words (``stop words'') from a list of string tokens.
-
-    Args:
-        tokens: list of tokens to filter
-        stopword_list: list of words to remove
-
-    Return:
-        filtered_tokens: list of tokens with stop words removed
-    """
-    cache = set(stopword_list)
-    filtered_tokens = [token for token in tokens
-                       if token.lower() not in cache]
-
-    return filtered_tokens
-
-def lemmatize(tokens, lemmatizer):
-    """Lemmatize a set of tokens.
-
-    Args:
-        tokens: list of tokens to lemmatize
-        lemmatizer: object with a ``lemmatize'' method for strings
-
-    Return:
-        lemmatized: list of lemmatized tokens
-    """
-    lemmatized = [lemmatizer.lemmatize(token) for token in tokens]
-
     return lemmatized
