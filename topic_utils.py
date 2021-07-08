@@ -52,24 +52,18 @@ def plot_top_words(model,
     plt.show()
 
 
-def extract_topics(documents_list,
-                   n_samples = 2000,
-                   n_features = 1000,
-                   n_components = 10,
-                   n_top_words = 20,
+def extract_topics(documents,
+                   vectorizer=None,
+                   n_samples=2000,
+                   n_features=1000,
+                   n_components=10,
+                   n_top_words=20,
                    apply_preprocessing=True,
-                   stop_words=None,
-                   preprocessor=None,
-                   tokenizer=None):
-    
-    if apply_preprocessing:
-        print('preprocessing...')
-        t1 = default_timer()
-        documents_list = (documents_list
-                         .map(long_string)
-                         .map(preprocess_string)
-                          )
-        print('elapsed: {}'.format(default_timer() - t1))
+                   stop_words=[*stopwords.words(),
+                                  '<-url->', '<-@->', '<-#->', 
+                                  '...','`',',','-',"'",
+                                  '.','^',],
+                   ):
     
     vectorizer = CountVectorizer(analyzer='word',
                                  strip_accents='ascii',
@@ -81,16 +75,21 @@ def extract_topics(documents_list,
                                            reduce_len=True,
                                            strip_handles=True).tokenize
                                 )
+    if apply_preprocessing:
+        documents_list = (documents
+                            .map(long_string)
+                            .map(preprocess_string)
+                         )
 
     print('vectorizing...')
-    t1 = default_timer()
+    #t1 = default_timer()
     tf = vectorizer.fit_transform(documents_list)
     
-    print('elapsed: {}'.format(default_timer() - t1))
+    #print('elapsed: {}'.format(default_timer() - t1))
     
     
-    print(('LDA:\nn_samples: {}\nn_features: {}')
-          .format(n_samples, n_features))
+    print(('LDA:\nn_samples: {}\nn_features: {}\nn_components: {}')
+          .format(n_samples, n_features, n_components))
 
     lda = LatentDirichletAllocation(n_components=n_components, 
                                     max_iter=5,

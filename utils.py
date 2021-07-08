@@ -23,6 +23,9 @@ def fill_mean(df, groups, col):
           .transform(lambda x: x.fillna(x.mean()))
          )
 
+def standardize(df):
+    return (df - df.mean()) / df.std()
+
 def sort_dict(dictionary):
     return sorted(counts.items(), key=lambda item: item[1], reverse=True)
 
