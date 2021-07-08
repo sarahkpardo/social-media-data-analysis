@@ -107,20 +107,7 @@ def extract_topics(documents,
                    n_components,
                    'Categories in LDA model')
     plt.tight_layout()
-    
-    
 
-def long_string(list_of_strings):
-    """
-    Concatenate a list of strings into a single string.
-    """
-    return ' '.join([string for string in list_of_strings])
-
-def long_list(list_of_lists):
-    """
-    Concatenate items from multiple lists into a single list.
-    """
-    return list(itertools.chain(*list_of_lists))
 
 def long_string(list_of_strings):
     """
