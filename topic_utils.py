@@ -58,34 +58,31 @@ def extract_topics(documents,
                    n_components=10,
                    n_top_words=20,
                    apply_preprocessing=True,
-                   stop_words=[*stopwords.words(),
-                                  '<-url->', '<-@->', '<-#->', 
-                                  '...','`',',','-',"'",
-                                  '.','^',],
+                   stop_words=None,
                    ):
     
-    vectorizer = CountVectorizer(analyzer='word',
-                                 strip_accents='ascii',
-                                 stop_words=[*stopwords.words(),
-                                              '<-url->', '<-@->', '<-#->', 
-                                              '...','`',',','-',"'"],
-                                 ngram_range=(1,2),
-                                 tokenizer=TweetTokenizer(preserve_case=False,
-                                           reduce_len=True,
-                                           strip_handles=True).tokenize
-                                )
+    if stop_words == None:
+        stop_words = [*stopwords.words(),
+                      '[url]', '[at]', '[htag]',
+                      '[sep]', '[unk]', '[cls]']
+    if vectorizer == None:
+        vectorizer = CountVectorizer(analyzer='word',
+                                     strip_accents='ascii',
+                                     stop_words=stop_words,
+                                     ngram_range=(1,2),
+                                     tokenizer=TweetTokenizer(preserve_case=False,
+                                               reduce_len=True,
+                                               strip_handles=True).tokenize
+                                    )
     if apply_preprocessing:
         documents_list = (documents
-                            .map(long_string)
-                            .map(preprocess_string)
+                          .map(long_string)
+                          .map(preprocess_string)
                          )
 
     print('vectorizing...')
-    #t1 = default_timer()
     tf = vectorizer.fit_transform(documents_list)
-    
-    #print('elapsed: {}'.format(default_timer() - t1))
-    
+        
     
     print(('LDA:\nn_samples: {}\nn_features: {}\nn_components: {}')
           .format(n_samples, n_features, n_components))
@@ -192,8 +189,9 @@ def tokenize_string(input_string,
     # remove stop words
     if stop_words == None:
         stop_words = [*stopwords.words(),
-                          '[URL]', '[AT]', '[HTAG]',
-                          '...','`',',','-',"'"]
+                      '[url]', '[at]', '[htag]',
+                      '[sep]', '[unk]', '[cls]']
+        
     cache = set(stop_words)
     no_stop_words = [token for token in tokens
                      if token.lower() not in cache
@@ -206,9 +204,8 @@ def remove_stopwords(tokens, stop_words=None):
 
     if stop_words == None:
         stop_words = [*stopwords.words(),
-                          '[url]', '[at]', '[htag]', 
-                          '[cls]', '[sep]', '[unk]',
-                          '`',',','-',"'"]
+                      '[url]', '[at]', '[htag]',
+                      '[sep]', '[unk]', '[cls]']
         
     cache = set(stop_words)
     no_stop_words = [token for token in tokens
