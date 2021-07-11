@@ -6,7 +6,6 @@ import timeit
 
 import matplotlib.pyplot as plt
 import nltk
-#nltk.download('popular')
 from nltk.corpus import wordnet
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -182,7 +181,8 @@ def tokenize_string(input_string,
     # remove stop words
     cache = set(stop_words)
     no_stop_words = [token for token in tokens
-                     if token.lower() not in cache]
+                     if token.lower() not in cache
+                     and len(token) > 1]
     
     return no_stop_words
 
