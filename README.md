@@ -15,7 +15,7 @@ conda create -n twitter_env --file twitter-env.txt
 - Compare campaign-associated tweets against a baseline of a more general set of tweets from the same time periods
 - Cross-campaign analysis
 - Apply clustering algorithms (e.g. k-means) to users and tweets
-- More advanced algorithm such as BERT for tokenizing tweet text
+- Huggingface tokenization pipeline for use of models such as BERT
 - Add SQL database import/export
 - Interface with deep learning library APIs
 - More extensive plotting and visualization
