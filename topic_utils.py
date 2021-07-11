@@ -13,16 +13,16 @@ from nltk.tokenize.api import StringTokenizer
 from nltk.tokenize import TweetTokenizer
 import numpy as np
 import pandas as pd
-from wordcloud import WordCloud
-
+import sklearn
 from sklearn.decomposition import LatentDirichletAllocation
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-
-import sklearn
-from sklearn.feature_extraction.text import CountVectorizer
-
+from tokenizers import normalizers
+from tokenizers.normalizers import NFD, StripAccents
+from tokenizers.pre_tokenizers import Whitespace
+from wordcloud import WordCloud
 
 def plot_top_words(model, 
                    feature_names, 
@@ -120,23 +120,34 @@ def long_list(list_of_lists):
     """
     return list(itertools.chain(*list_of_lists))
 
-def preprocess_string(string, placeholders=False):
-    """Remove symbols; replace urls, hashtags, and user 
-       mentions with a placeholder token.
+def preprocess_string(string, special_tokens=False):
+    """Remove symbols; optionally replace urls, hashtags, and user 
+       mentions with a special token.
     """
+    string = re.sub(r'[[\]]+', '', string)
+    
     # "rt" ("retweet") 
     string = re.sub('rt', '', string.lower())
     
-    if placeholders:
+    if special_tokens:
         # @-mentions
-        string = re.sub(r'@\w+', '<-@->', string)
+        string = re.sub(r'@\w+', '[AT]', string)
 
         # hyperlinks
-        string = re.sub(r'http\S+', '<-URL->', string)
-        string = re.sub(r'www.[^ ]+', '<-URL->', string)
+        string = re.sub(r'http\S+', '[URL]', string)
+        string = re.sub(r'www.[^ ]+', '[URL]', string)
     
         # hashtags
-        string = re.sub(r'#\w+', '<-#->', string)
+        string = re.sub(r'#\w+', '[HTAG]', string)
+        
+        # symbols        
+        string = re.sub(r'[!]{2,}', '!', string)
+        string = re.sub(r'[,]{2,}', ',', string)
+        string = re.sub(r'[.]{2,}', '.', string)
+        string = re.sub(r'[?]{2,}', '?', string)
+        
+        string = re.sub(r'[!"(),./:;?_{|}]+', ' [SEP]', string)
+        string = re.sub(r'[!"$%&()*+,./:;=?^_`{|}~]+', '', string)
         
     else:
         # @-mentions
@@ -148,17 +159,17 @@ def preprocess_string(string, placeholders=False):
     
         # hashtags
         string = re.sub(r'#\w+', '', string)
+        
+        # symbols
+        string = re.sub(r'[!"$%&()*+,./:;=?^_`{|}~]+', '', string)
     
     # digits
-    string = re.sub(r'[0-9]+', '', string)
-    
-    # symbols
-    string = re.sub(r'[!"$%&()*+,./:;=?[\]^_`{|}~]+', '', string)
-    
+    #string = re.sub(r'[0-9]+', '', string)
+
     return string
 
 def tokenize_string(input_string, 
-                    stop_words,
+                    stop_words=None,
                     tokenizer=TweetTokenizer(preserve_case=False,
                                              reduce_len=True,
                                              strip_handles=False),
@@ -179,10 +190,31 @@ def tokenize_string(input_string,
     tokens = tokenizer.tokenize(input_string)
     
     # remove stop words
+    if stop_words == None:
+        stop_words = [*stopwords.words(),
+                          '[URL]', '[AT]', '[HTAG]',
+                          '...','`',',','-',"'"]
     cache = set(stop_words)
     no_stop_words = [token for token in tokens
                      if token.lower() not in cache
-                     and len(token) > 1]
+                     and len(token) > 1
+                    ]
+    
+    return no_stop_words
+
+def remove_stopwords(tokens, stop_words=None):
+
+    if stop_words == None:
+        stop_words = [*stopwords.words(),
+                          '[url]', '[at]', '[htag]', 
+                          '[cls]', '[sep]', '[unk]',
+                          '`',',','-',"'"]
+        
+    cache = set(stop_words)
+    no_stop_words = [token for token in tokens
+                     if token.lower() not in cache
+                     and len(token) > 1
+                     and token[0] != '#']
     
     return no_stop_words
 
@@ -199,3 +231,37 @@ def lemmatize(tokens, lemmatizer):
     lemmatized = [lemmatizer.lemmatize(token) for token in tokens]
     
     return lemmatized
+
+def word_frequency(list_of_words):
+    """
+    Return:
+        dict of {'word':'frequency'} sorted by frequency (high to low)
+    """
+    counts = collections.Counter(list_of_words)
+    
+    return dict(sorted(counts.items(), key=lambda item: item[1], reverse=True))
+
+def visualize(data,
+              from_frequencies=True,
+              limit=100,
+              color=(150,50,50)):
+    """
+    """
+    cloud = WordCloud(background_color="white",
+                  prefer_horizontal=0.9,
+                  max_font_size=40,
+                  relative_scaling=.5,
+                  color_func=lambda *args,**kwargs:color)
+    
+    data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
+    
+    if from_frequencies:
+        cloud.generate_from_frequencies(data)
+    else:
+        cloud.generate(data)
+    
+    fig, ax = plt.subplots()
+    ax.imshow(cloud)
+    ax.axis('off')
+    
+    return fig
