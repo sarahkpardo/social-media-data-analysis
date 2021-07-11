@@ -124,7 +124,7 @@ def preprocess_string(string, special_tokens=False):
     """Remove symbols; optionally replace urls, hashtags, and user 
        mentions with a special token.
     """
-    string = re.sub(r'[[\]]+', '', string)
+    string = re.sub(r'[\[\]]+', '', string)
     
     # "rt" ("retweet") 
     string = re.sub('rt', '', string.lower())
@@ -146,7 +146,7 @@ def preprocess_string(string, special_tokens=False):
         string = re.sub(r'[.]{2,}', '.', string)
         string = re.sub(r'[?]{2,}', '?', string)
         
-        string = re.sub(r'[!"(),./:;?_{|}]+', ' [SEP]', string)
+        string = re.sub(r'[!"(),./:;?_{|}]+', ' [SEP] ', string)
         string = re.sub(r'[!"$%&()*+,./:;=?^_`{|}~]+', '', string)
         
     else:
@@ -164,7 +164,7 @@ def preprocess_string(string, special_tokens=False):
         string = re.sub(r'[!"$%&()*+,./:;=?^_`{|}~]+', '', string)
     
     # digits
-    #string = re.sub(r'[0-9]+', '', string)
+    string = re.sub(r'[0-9]+', '', string)
 
     return string
 
