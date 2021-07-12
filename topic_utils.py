@@ -25,6 +25,9 @@ from tokenizers.normalizers import NFD, StripAccents
 from tokenizers.pre_tokenizers import Whitespace
 from wordcloud import WordCloud
 
+
+string_agg = lambda x: list(x)
+
 def plot_top_words(model, 
                    feature_names, 
                    n_top_words, 
