@@ -16,6 +16,7 @@ import pandas as pd
 import sklearn
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction import DictVectorizer
 from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -67,13 +68,12 @@ def extract_topics(documents,
                       '[sep]', '[unk]', '[cls]']
     if vectorizer == None:
         vectorizer = CountVectorizer(analyzer='word',
-                                     strip_accents='ascii',
-                                     stop_words=stop_words,
-                                     ngram_range=(1,2),
-                                     tokenizer=TweetTokenizer(preserve_case=False,
-                                               reduce_len=True,
-                                               strip_handles=True).tokenize
-                                    )
+                             strip_accents='ascii',
+                             stop_words=stop_words,
+                             ngram_range=(1,2),
+                             preprocessor=preprocess_partial,
+                             tokenizer=tokenize_partial,
+                            )
     if apply_preprocessing:
         documents_list = (documents
                           .map(long_string)
@@ -117,7 +117,9 @@ def long_list(list_of_lists):
     """
     return list(itertools.chain(*list_of_lists))
 
-def preprocess_string(string, special_tokens=False):
+def preprocess_string(string, 
+                      special_tokens=False,
+                      sep=False):
     """Remove symbols; optionally replace urls, hashtags, and user 
        mentions with a special token.
     """
@@ -137,15 +139,6 @@ def preprocess_string(string, special_tokens=False):
         # hashtags
         string = re.sub(r'#\w+', '[HTAG]', string)
         
-        # symbols        
-        string = re.sub(r'[!]{2,}', '!', string)
-        string = re.sub(r'[,]{2,}', ',', string)
-        string = re.sub(r'[.]{2,}', '.', string)
-        string = re.sub(r'[?]{2,}', '?', string)
-        
-        string = re.sub(r'[!"(),./:;?_{|}]+', ' [SEP] ', string)
-        string = re.sub(r'[!"$%&()*+,./:;=?^_`{|}~]+', '', string)
-        
     else:
         # @-mentions
         string = re.sub(r'@\w+', '', string)
@@ -160,6 +153,16 @@ def preprocess_string(string, special_tokens=False):
         # symbols
         string = re.sub(r'[!"$%&()*+,./:;=?^_`{|}~]+', '', string)
     
+    if sep:
+        # symbols        
+        string = re.sub(r'[!]{2,}', '!', string)
+        string = re.sub(r'[,]{2,}', ',', string)
+        string = re.sub(r'[.]{2,}', '.', string)
+        string = re.sub(r'[?]{2,}', '?', string)
+        
+        string = re.sub(r'[!"(),./:;?_{|}]+', ' [SEP] ', string)
+        string = re.sub(r'[!"$%&()*+,./:;=?^_`{|}~]+', '', string)
+        
     # digits
     string = re.sub(r'[0-9]+', '', string)
 
