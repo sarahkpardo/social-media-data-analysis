@@ -5,14 +5,16 @@ import string
 from timeit import default_timer
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
 import nltk
 from nltk.corpus import wordnet
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize.api import StringTokenizer
 from nltk.tokenize import TweetTokenizer
-import numpy as np
-import pandas as pd
+
 import sklearn
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
@@ -20,13 +22,70 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from tokenizers import normalizers
-from tokenizers.normalizers import NFD, StripAccents
-from tokenizers.pre_tokenizers import Whitespace
+
+from scipy.spatial.distance import cosine
+from scipy.special import softmax
+from transformers import AutoModelForSequenceClassification
+from transformers import TFAutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModel, TFAutoModel
+
 from wordcloud import WordCloud
 
 
 string_agg = lambda x: list(x)
+
+def get_model(model, task):
+    model = TFAutoModelForSequenceClassification.from_pretrained(MODEL)
+
+    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    tokenizer.add_tokens(['[HTAG]', '[URL]', '[AT]'])
+    
+    return model, tokenizer
+    
+def get_labels(task):
+    mapping_link = ('https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{}/mapping.txt'.format(task))
+    with urllib.request.urlopen(mapping_link) as f:
+        html = f.read().decode('utf-8').split("\n")
+        csvreader = csv.reader(html, delimiter='\t')
+    return [row[1] for row in csvreader if len(row) > 1]
+    
+def predict_sentiment(document):
+    # tokenize
+    encoded_input = tokenizer(document, return_tensors='tf')
+    
+    # apply model
+    output = model(encoded_input)
+    scores = output[0][0].numpy()
+    scores = softmax(scores)
+
+    return labels[np.argmax(scores)]#, np.max(scores)
+
+def _sentiment(document):
+    """Usage: df.apply(get_sentiment_apply)"""
+    
+    task = 'sentiment'
+    MODEL = 'cardiffnlp/twitter-roberta-base-{}'.format(task)
+    model = TFAutoModelForSequenceClassification.from_pretrained(MODEL)
+
+    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    tokenizer.add_tokens(['[HTAG]', '[URL]', '[AT]'])
+    
+    mapping_link = ('https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{}/mapping.txt'.format(task))
+    with urllib.request.urlopen(mapping_link) as f:
+        html = f.read().decode('utf-8').split("\n")
+        csvreader = csv.reader(html, delimiter='\t')
+    labels = [row[1] for row in csvreader if len(row) > 1]
+    
+    # tokenize
+    encoded_input = tokenizer(document, return_tensors='tf')
+    
+    # apply model
+    output = model(encoded_input)
+    scores = output[0][0].numpy()
+    scores = softmax(scores)
+
+    return labels[np.argmax(scores)]#, np.max(scores)
+
 
 def plot_top_words(model, 
                    feature_names, 
