@@ -2,7 +2,7 @@ import collections
 import itertools
 import re
 import string
-import timeit
+from timeit import default_timer
 
 import matplotlib.pyplot as plt
 import nltk
@@ -235,6 +235,33 @@ def lemmatize(tokens, lemmatizer):
     
     return lemmatized
 
+def make_tokens(list_of_strings,
+                stop_words=[*stopwords.words(),
+                          '[URL]', '[AT]', '[HTAG]']):
+    """Apply preprocessing and tokenization to a list of strings.
+    Usage: 
+            output = make_tokens(series_of_strings)
+
+            output = df.apply(make_tokens)
+            
+    Return:
+        A list of lists of tokens for each string.
+    """    
+    
+    #t1 = default_timer()
+
+    processed_strings = [preprocess_string(string)
+                         for string in list_of_strings]
+
+    tokenized_strings = [tokenize_string(string,
+                                         stop_words)
+                          for string in processed_strings]
+                         
+    #t2 = default_timer()
+    #print('elapsed', t2 - t1)
+    
+    return tokenized_strings
+
 def word_frequency(list_of_words):
     """
     Return:
@@ -256,8 +283,8 @@ def visualize(data,
                   relative_scaling=.5,
                   color_func=lambda *args,**kwargs:color)
     
-    data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
-    
+    data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True)[:limit])
+        
     if from_frequencies:
         cloud.generate_from_frequencies(data)
     else:
