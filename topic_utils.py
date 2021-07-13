@@ -354,3 +354,9 @@ def visualize(data,
     ax.axis('off')
     
     return fig
+
+def tokens_from_series(series):
+    tokens = make_tokens((series).to_list())
+    freq = word_frequency(long_list(tokens))
+    fig = visualize(freq)
+    return fig
