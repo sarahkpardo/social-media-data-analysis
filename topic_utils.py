@@ -34,6 +34,8 @@ from wordcloud import WordCloud
 
 string_agg = lambda x: list(x)
 
+
+# sentiment analysis utilities
 def get_model(model, task):
     model = TFAutoModelForSequenceClassification.from_pretrained(MODEL)
 
@@ -42,14 +44,16 @@ def get_model(model, task):
     
     return model, tokenizer
     
-def get_labels(task):
-    mapping_link = ('https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{}/mapping.txt'.format(task))
-    with urllib.request.urlopen(mapping_link) as f:
+def get_labels(csv_link):
+    with urllib.request.urlopen(csv_link) as f:
         html = f.read().decode('utf-8').split("\n")
         csvreader = csv.reader(html, delimiter='\t')
     return [row[1] for row in csvreader if len(row) > 1]
     
-def predict_sentiment(document):
+def predict_sentiment(document, labels=None, model=None):
+    # preprocess
+    document = preprocess_string(document)
+    
     # tokenize
     encoded_input = tokenizer(document, return_tensors='tf')
     
@@ -58,7 +62,8 @@ def predict_sentiment(document):
     scores = output[0][0].numpy()
     scores = softmax(scores)
 
-    return labels[np.argmax(scores)]#, np.max(scores)
+    return labels[np.argmax(scores)]
+
 
 def _sentiment(document):
     """Usage: df.apply(get_sentiment_apply)"""
@@ -87,6 +92,7 @@ def _sentiment(document):
     return labels[np.argmax(scores)]#, np.max(scores)
 
 
+# plotting for LDA
 def plot_top_words(model, 
                    feature_names, 
                    n_top_words, 
@@ -355,7 +361,7 @@ def visualize(data,
     
     return fig
 
-def tokens_from_series(series):
+def vis_from_series(series):
     tokens = make_tokens((series).to_list())
     freq = word_frequency(long_list(tokens))
     fig = visualize(freq)
