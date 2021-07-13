@@ -130,11 +130,17 @@ def extract_topics(documents,
                    stop_words=None,
                    ):
     
+    tokenize_partial = functools.partial(tokenize_string, stop_words=stop_words)
+    preprocess_partial = functools.partial(preprocess_string, special_tokens=False)
+    
     if stop_words == None:
         stop_words = [*stopwords.words(),
-                      '[url]', '[at]', '[htag]',
-                      '[sep]', '[unk]', '[cls]']
+                      '[url]', '[at]', '[htag]',]
     if vectorizer == None:
+        tokenize_partial = functools.partial(tokenize_string, 
+                                             stop_words=stop_words)
+        preprocess_partial = functools.partial(preprocess_string, 
+                                               special_tokens=False)
         vectorizer = CountVectorizer(analyzer='word',
                              strip_accents='ascii',
                              stop_words=stop_words,
@@ -143,13 +149,13 @@ def extract_topics(documents,
                              tokenizer=tokenize_partial,
                             )
     if apply_preprocessing:
-        documents_list = (documents
+        documents = (documents
                           .map(long_string)
                           .map(preprocess_string)
                          )
 
     print('vectorizing...')
-    tf = vectorizer.fit_transform(documents_list)
+    tf = vectorizer.fit_transform(documents)
         
     
     print(('LDA:\nn_samples: {}\nn_features: {}\nn_components: {}')

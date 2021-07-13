@@ -50,7 +50,6 @@ def melt_list_column(df, col_name, id_var):
             .dropna()
            )
 
-
 def combine_csvs(directory):
     """Join multiple CSVs into a single dataframe."""
 
