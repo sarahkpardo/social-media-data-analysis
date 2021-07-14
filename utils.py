@@ -1,16 +1,14 @@
+"""Utility functions for loading tweet and account csv-formatted data."""
+
 from collections import Counter
-import datetime
-import functools
 import itertools
-import os
 from pathlib import Path
 import re
-import sqlite3
-from timeit import default_timer
 
-import numpy as np
 import pandas as pd
 
+def string_agg(x):
+    return list(x)
 
 def mean_normalize(df):
     return (df - df.mean()) / df.std()
@@ -21,7 +19,7 @@ def min_max_normalize(df):
 
 
 def fill_mean(df, groups, col):
-    return (df.groupby(groups)[col].transform(lambda x: x.fillna(x.mean())))
+    return df.groupby(groups)[col].transform(lambda x: x.fillna(x.mean()))
 
 
 def standardize(df):
@@ -29,7 +27,7 @@ def standardize(df):
 
 
 def sort_dict(dictionary):
-    return sorted(counts.items(), key=lambda item: item[1], reverse=True)
+    return sorted(dictionary.items(), key=lambda item: item[1], reverse=True)
 
 
 def str_to_list(string):
@@ -99,16 +97,7 @@ class UsersData(object):
         self.df = self.df.astype(self.fields)
 
     def __str__(self):
-        return 'Dataset: {}'.format(name)
-
-    def to_torch(self):
-        return  #torch.data.DataLoader(self.df)
-
-    def to_tf(self):
-        return tf.data.Dataset.from_tensor_slices(dict(self.df))
-
-    def to_np(self):
-        return np.to_array(self.df)
+        return 'Dataset: {}'.format(self.name)
 
 
 class TweetsData(object):
@@ -145,7 +134,7 @@ class TweetsData(object):
 
         self.df = self.df.astype(self.fields)
         self.df['type'] = self.df['is_retweet'].apply(
-            lambda x: 'retweet' if x == True else 'original')
+            lambda x: 'retweet' if x else 'original')
         self.df['is_reply'] = self.df['in_reply_to_tweetid'].notna()
         self.df['has_quote'] = self.df['quoted_tweet_tweetid'].notna()
         self.df['hashtags'] = self.df['hashtags'].dropna().map(str_to_list)
@@ -154,16 +143,7 @@ class TweetsData(object):
             str_to_list)
 
     def __str__(self):
-        return 'Dataset: {}'.format(name)
-
-    def to_torch(self):
-        return  #torch.data.DataLoader(self.df)
-
-    def to_tf(self):
-        return tf.data.Dataset.from_tensor_slices(dict(self.df))
-
-    def to_np(self):
-        return np.to_array(self.df)
+        return 'Dataset: {}'.format(self.name)
 
 
 def get_unique_ids(campaign, campaign_users):

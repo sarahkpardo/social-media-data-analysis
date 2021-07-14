@@ -1,57 +1,45 @@
+"""Utility functions for topic modeling demo notebook."""
+
 import collections
+import csv
+import functools
 import itertools
 import re
-import string
-from timeit import default_timer
+import urllib
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-
-import nltk
-from nltk.corpus import wordnet
 from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize.api import StringTokenizer
 from nltk.tokenize import TweetTokenizer
-
-import sklearn
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.preprocessing import Normalizer
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-
-from scipy.spatial.distance import cosine
 from scipy.special import softmax
-from transformers import AutoModelForSequenceClassification
 from transformers import TFAutoModelForSequenceClassification
-from transformers import AutoTokenizer, AutoModel, TFAutoModel
-
+from transformers import AutoTokenizer
 from wordcloud import WordCloud
 
-string_agg = lambda x: list(x)
 
+def get_model(model_name):
+    """Retrieve a pre-trained model and tokenizer from the transformers
+    library."""
+    model = TFAutoModelForSequenceClassification.from_pretrained(model_name)
 
-# sentiment analysis utilities
-def get_model(model, task):
-    model = TFAutoModelForSequenceClassification.from_pretrained(MODEL)
-
-    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.add_tokens(['[HTAG]', '[URL]', '[AT]'])
 
     return model, tokenizer
 
 
 def get_labels(csv_link):
+    """Retrieve the class labels for a given transformers library model."""
     with urllib.request.urlopen(csv_link) as f:
         html = f.read().decode('utf-8').split("\n")
         csvreader = csv.reader(html, delimiter='\t')
     return [row[1] for row in csvreader if len(row) > 1]
 
 
-def predict_sentiment(document, labels=None, model=None):
+def predict_sentiment(document, labels=None, model=None, tokenizer=None):
+    """Apply sentiment prediction model to a raw document."""
     # preprocess
     document = preprocess_string(document)
 
@@ -66,37 +54,9 @@ def predict_sentiment(document, labels=None, model=None):
     return labels[np.argmax(scores)]
 
 
-def _sentiment(document):
-    """Usage: df.apply(get_sentiment_apply)"""
-
-    task = 'sentiment'
-    MODEL = 'cardiffnlp/twitter-roberta-base-{}'.format(task)
-    model = TFAutoModelForSequenceClassification.from_pretrained(MODEL)
-
-    tokenizer = AutoTokenizer.from_pretrained(MODEL)
-    tokenizer.add_tokens(['[HTAG]', '[URL]', '[AT]'])
-
-    mapping_link = (
-        'https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{}/mapping.txt'
-        .format(task))
-    with urllib.request.urlopen(mapping_link) as f:
-        html = f.read().decode('utf-8').split("\n")
-        csvreader = csv.reader(html, delimiter='\t')
-    labels = [row[1] for row in csvreader if len(row) > 1]
-
-    # tokenize
-    encoded_input = tokenizer(document, return_tensors='tf')
-
-    # apply model
-    output = model(encoded_input)
-    scores = output[0][0].numpy()
-    scores = softmax(scores)
-
-    return labels[np.argmax(scores)]  #, np.max(scores)
-
-
 # plotting for LDA
 def plot_top_words(model, feature_names, n_top_words, n_components, title):
+    """Plotting utility for the results of a fitted sklearn LDA model."""
     fig, axes = plt.subplots(2,
                              n_components // 2,
                              figsize=(30, 15),
@@ -131,20 +91,22 @@ def extract_topics(
         apply_preprocessing=True,
         stop_words=None,
 ):
+    """Utility function for applying LDA topic modeling to a list of raw
+    documents."""
 
     tokenize_partial = functools.partial(tokenize_string,
                                          stop_words=stop_words)
     preprocess_partial = functools.partial(preprocess_string,
                                            special_tokens=False)
 
-    if stop_words == None:
+    if stop_words is None:
         stop_words = [
             *stopwords.words(),
             '[url]',
             '[at]',
             '[htag]',
         ]
-    if vectorizer == None:
+    if vectorizer is None:
         tokenize_partial = functools.partial(tokenize_string,
                                              stop_words=stop_words)
         preprocess_partial = functools.partial(preprocess_string,
@@ -182,21 +144,17 @@ def extract_topics(
 
 
 def long_string(list_of_strings):
-    """
-    Concatenate a list of strings into a single string.
-    """
+    """Concatenate a list of strings into a single string."""
     return ' '.join([string for string in list_of_strings])
 
 
 def long_list(list_of_lists):
-    """
-    Concatenate items from multiple lists into a single list.
-    """
+    """Concatenate items from multiple lists into a single list."""
     return list(itertools.chain(*list_of_lists))
 
 
 def preprocess_string(string, special_tokens=False, sep=False):
-    """Remove symbols; optionally replace urls, hashtags, and user 
+    """Remove symbols; optionally replace urls, hashtags, and user
        mentions with a special token.
     """
     string = re.sub(r'[\[\]]+', '', string)
@@ -254,21 +212,21 @@ def tokenize_string(
         preprocess=False,
 ):
     """Preprocess and tokenize a raw tweet string.
-    
+
     Args:
         in_string: string to tokenize
         tokenizer: object with a ``tokenize'' method for strings
-        
+
     Return:
         tokens: list of strings (tokens)
     """
-    if preprocess == True:
+    if preprocess:
         input_string = preprocess_string(input_string)
 
     tokens = tokenizer.tokenize(input_string)
 
     # remove stop words
-    if stop_words == None:
+    if stop_words is None:
         stop_words = [
             *stopwords.words(), '[url]', '[at]', '[htag]', '[sep]', '[unk]',
             '[cls]'
@@ -285,7 +243,7 @@ def tokenize_string(
 
 def remove_stopwords(tokens, stop_words=None):
 
-    if stop_words == None:
+    if stop_words is None:
         stop_words = [
             *stopwords.words(), '[url]', '[at]', '[htag]', '[sep]', '[unk]',
             '[cls]'
@@ -302,11 +260,11 @@ def remove_stopwords(tokens, stop_words=None):
 
 def lemmatize(tokens, lemmatizer):
     """Lemmatize a set of tokens.
-    
+
     Args:
         tokens: list of tokens to lemmatize
         lemmatizer: object with a ``lemmatize'' method for strings
-        
+
     Return:
         lemmatized: list of lemmatized tokens
     """
@@ -318,11 +276,11 @@ def lemmatize(tokens, lemmatizer):
 def make_tokens(list_of_strings,
                 stop_words=[*stopwords.words(), '[URL]', '[AT]', '[HTAG]']):
     """Apply preprocessing and tokenization to a list of strings.
-    Usage: 
+    Usage:
             output = make_tokens(series_of_strings)
 
             output = df.apply(make_tokens)
-            
+
     Return:
         A list of lists of tokens for each string.
     """
@@ -354,7 +312,7 @@ def word_frequency(list_of_words):
 
 
 def visualize(data, from_frequencies=True, limit=100, color=(150, 50, 50)):
-    """
+    """Generate word cloud visualization from a set of tokens.
     """
     cloud = WordCloud(background_color="white",
                       prefer_horizontal=0.9,

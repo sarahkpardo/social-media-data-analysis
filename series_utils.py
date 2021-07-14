@@ -1,16 +1,4 @@
-import datetime
-import functools
-import itertools
-from pathlib import Path
-import timeit
-import warnings
-warnings.simplefilter('ignore')
-
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-
-from sklearn.feature_extraction.text import CountVectorizer
+"""Utility functions for handling timeseries data."""
 
 
 def make_timeline(df, freq):
