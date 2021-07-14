@@ -7,8 +7,18 @@ import re
 
 import pandas as pd
 
+def long_string(list_of_strings):
+    """Concatenate a list of strings into a single string."""
+    return ' '.join([string for string in list_of_strings])
+
+
+def long_list(list_of_lists):
+    """Concatenate items from multiple lists into a single list."""
+    return list(itertools.chain(*list_of_lists))
+
 def string_agg(x):
     return list(x)
+
 
 def mean_normalize(df):
     return (df - df.mean()) / df.std()
@@ -133,8 +143,8 @@ class TweetsData(object):
         }
 
         self.df = self.df.astype(self.fields)
-        self.df['type'] = self.df['is_retweet'].apply(
-            lambda x: 'retweet' if x else 'original')
+        self.df['type'] = self.df['is_retweet'].apply(lambda x: 'retweet'
+                                                      if x else 'original')
         self.df['is_reply'] = self.df['in_reply_to_tweetid'].notna()
         self.df['has_quote'] = self.df['quoted_tweet_tweetid'].notna()
         self.df['hashtags'] = self.df['hashtags'].dropna().map(str_to_list)
@@ -173,3 +183,33 @@ def get_unique_ids(campaign, campaign_users):
                 reply_userids,
                 mention_userids,
             ])))
+
+
+def top_user(campaign):
+    return campaign.groupby('userid').size().idxmax()
+
+
+def hashtag_list(campaign):
+    hashtags = (campaign.loc[:]['hashtags'].fillna(''))
+    return [el.strip() for el in long_list(hashtags) if el != '']
+
+
+def top_days(campaign, limit=1):
+    grouped = (campaign.reset_index().set_index('tweet_time').resample('D'))
+
+    return (grouped.size().sort_values(ascending=False)).index[:limit]
+
+
+def original_tweets(tweets):
+    is_retweet = tweets['is_retweet'] is not False
+    return tweets.loc[:][is_retweet]
+
+
+def retweets(tweets):
+    is_retweet = tweets['is_retweet'] is True
+    return tweets.loc[:][is_retweet]
+
+
+def replies(tweets):
+    is_reply = tweets['in_reply_to_tweetid'].notna()
+    return tweets.loc[:][is_reply]
