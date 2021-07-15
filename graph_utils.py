@@ -48,7 +48,7 @@ def add_node_attributes(graph):
     nx.set_node_attributes(graph, dict(graph.in_degree(graph.nodes())),
                            'in_degree')
 
-    if isinstance(graph) != nx.classes.multidigraph.MultiDigraphraph:
+    if (type(graph) != nx.classes.multidigraph.MultiDiGraph):
         # eigenvector centrality
         nx.set_node_attributes(graph, nx.eigenvector_centrality(graph),
                                'eigenvector')

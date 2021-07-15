@@ -162,6 +162,9 @@ def preprocess_string(string, special_tokens=False, sep=False):
     # "rt" ("retweet")
     string = re.sub('rt', '', string.lower())
 
+    # replace & with and
+    string = re.sub('&amp;', 'and', string)
+    
     if special_tokens:
         # @-mentions
         string = re.sub(r'@\w+', '[AT]', string)
