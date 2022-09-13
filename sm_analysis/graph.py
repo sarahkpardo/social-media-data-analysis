@@ -9,7 +9,7 @@ import numpy as np
 from scipy import stats
 
 from sm_analysis.utils import *
-from sm_analysis.twitter import get_unique_ids
+from sm_analysis.twitter.utils import get_unique_ids
 
 def make_user_graph(campaign, campaign_users):
 
