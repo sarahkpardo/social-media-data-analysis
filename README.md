@@ -7,7 +7,7 @@ A set of Jupyter notebooks demonstrating pre-processing pipelines which provide 
 The conda environment file can be used to create an environment with the required modules using
 
 ```
-conda create -n twitter_env --file twitter-env.txt
+conda env create -n sm_env --file ENV.yml
 ```
 
 # Datasets
