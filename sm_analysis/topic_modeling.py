@@ -1,4 +1,4 @@
-"""Utility functions for topic modeling demo notebook."""
+"""Utility functions for topic modeling."""
 
 import collections
 import csv
@@ -18,6 +18,7 @@ from transformers import TFAutoModelForSequenceClassification
 from transformers import AutoTokenizer
 from wordcloud import WordCloud
 
+from sm_analysis.utils import *
 
 def get_model(model_name):
     """Retrieve a pre-trained model and tokenizer from the transformers
@@ -70,7 +71,7 @@ def plot_top_words(model, feature_names, n_top_words, n_components, title):
 
         ax = axes[topic_idx]
         ax.barh(top_features, weights, height=0.7)
-        ax.set_title(f'Topic {topic_idx +1}', fontdict={'fontsize': 30})
+        ax.set_title(f'Topic {topic_idx + 1}', fontdict={'fontsize': 30})
         ax.invert_yaxis()
         ax.tick_params(axis='both', which='major', labelsize=20)
         for i in 'top right left'.split():
@@ -93,11 +94,6 @@ def extract_topics(
 ):
     """Utility function for applying LDA topic modeling to a list of raw
     documents."""
-
-    tokenize_partial = functools.partial(tokenize_string,
-                                         stop_words=stop_words)
-    preprocess_partial = functools.partial(preprocess_string,
-                                           special_tokens=False)
 
     if stop_words is None:
         stop_words = [
@@ -125,7 +121,7 @@ def extract_topics(
     print('vectorizing...')
     tf = vectorizer.fit_transform(documents)
 
-    print(('LDA:\nn_samples: {}\nn_features: {}\nn_components: {}').format(
+    print('LDA:\nn_samples: {}\nn_features: {}\nn_components: {}'.format(
         n_samples, n_features, n_components))
 
     lda = LatentDirichletAllocation(n_components=n_components,
@@ -164,7 +160,7 @@ def preprocess_string(string, special_tokens=False, sep=False):
 
     # replace & with and
     string = re.sub('&amp;', 'and', string)
-    
+
     if special_tokens:
         # @-mentions
         string = re.sub(r'@\w+', '[AT]', string)
@@ -245,7 +241,6 @@ def tokenize_string(
 
 
 def remove_stopwords(tokens, stop_words=None):
-
     if stop_words is None:
         stop_words = [
             *stopwords.words(), '[url]', '[at]', '[htag]', '[sep]', '[unk]',
@@ -277,7 +272,8 @@ def lemmatize(tokens, lemmatizer):
 
 
 def make_tokens(list_of_strings,
-                stop_words=[*stopwords.words(), '[URL]', '[AT]', '[HTAG]']):
+                stop_words=[*stopwords.words(), '[URL]', '[AT]', '[HTAG]'],
+                timer=False):
     """Apply preprocessing and tokenization to a list of strings.
     Usage:
             output = make_tokens(series_of_strings)
@@ -287,8 +283,8 @@ def make_tokens(list_of_strings,
     Return:
         A list of lists of tokens for each string.
     """
-
-    #t1 = default_timer()
+    if timer:
+        t1 = default_timer()
 
     processed_strings = [
         preprocess_string(string) for string in list_of_strings
@@ -298,8 +294,9 @@ def make_tokens(list_of_strings,
         tokenize_string(string, stop_words) for string in processed_strings
     ]
 
-    #t2 = default_timer()
-    #print('elapsed', t2 - t1)
+    if timer:
+        t2 = default_timer()
+        print('elapsed', t2 - t1)
 
     return tokenized_strings
 

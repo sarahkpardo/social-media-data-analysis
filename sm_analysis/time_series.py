@@ -1,5 +1,7 @@
 """Utility functions for handling timeseries data."""
 
+from sm_analysis.utils import *
+
 
 def make_timeline(df, freq):
     return (

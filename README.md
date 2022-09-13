@@ -9,3 +9,8 @@ The conda environment file can be used to create an environment with the require
 ```
 conda create -n twitter_env --file twitter-env.txt
 ```
+
+# Datasets
+
+The datasets used were released in February 2021, and are available for download [here](https://transparency.twitter.com/en/reports/information-operations.html) after agreement to the [Twitter Developer Agreement and Policy](https://t.co/devpolicy).
+
