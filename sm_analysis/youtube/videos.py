@@ -1,15 +1,15 @@
 # video ids
-mr_beat_vids = ["8MRw-r8avNQ", # 7 hour debunking of PragerU
+mr_beat = ["8MRw-r8avNQ", # 7 hour debunking of PragerU
                 ]
-sargon_vids = ["zH0mPfR-K2U", # neoliberalism, immigration
+sargon = ["zH0mPfR-K2U", # neoliberalism, immigration
                  ]
-jacobin_vids = ["XnvpdCPeIJU", # collapse of neoliberalism
+jacobin = ["XnvpdCPeIJU", # collapse of neoliberalism
                 "ygLW4R4fsRg", # climate change as class war, personal responsibility
                 ]
-jre_vids = []
+jre = []
 
-debate_vids = ["XxuiqeuyUyw", # Ana Kasparian vs Ben Shapiro
+debate = ["XxuiqeuyUyw", # Ana Kasparian vs Ben Shapiro
                ]
 
-prageru_vids = ["v_eobnhtCy8", # why socialism never works
+prageru = ["v_eobnhtCy8", # why socialism never works
                 ]

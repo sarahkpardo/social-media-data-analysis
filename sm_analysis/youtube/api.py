@@ -160,8 +160,11 @@ class CommentThreads(Collection):
         
 
     def parse(self, response):
-        self.nextPageToken = response["nextPageToken"]
         self.items += response["items"]
+        try:
+            self.nextPageToken = response["nextPageToken"]
+        except KeyError as e:
+            return
         
     def clear(self):
         self.nextPageToken = None
