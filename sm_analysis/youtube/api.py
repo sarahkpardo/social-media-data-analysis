@@ -51,14 +51,15 @@ class Collection:
     
     
 class Search(Collection):
-    def __init__(self, query):
+    def __init__(self):
         self.method = None
         self.items = []
         self.nextPageToken = None
         
-        self.query = query
+        
         
     def api_request(self,
+                    query,
                     part="snippet",
                     **kwargs):
         """
@@ -90,7 +91,8 @@ class Search(Collection):
              videoType=None,
          }
          """
-    
+        self.query = query
+        self.kwargs = kwargs
         youtube = build(SERVICE_NAME, 
                         VERSION, 
                         developerKey=DEV_KEY)
@@ -153,17 +155,24 @@ class CommentThreads(Collection):
         except HttpError as e:
             print('Error response status code : {0}, reason : {1}'
                   .format(e.status_code, e.error_details))
-
+            return
+        
         youtube.close()
-
-        return response
+        try:
+            return response
+        except UnboundLocalError as e:
+            print('Error response status code : {0}, reason : {1}'
+                  .format(e.status_code, e.error_details))
+            return            
         
 
     def parse(self, response):
-        self.items += response["items"]
         try:
+            self.items += response["items"]
             self.nextPageToken = response["nextPageToken"]
         except KeyError as e:
+            print('Error response status code : {0}, reason : {1}'
+                  .format(e.status_code, e.error_details))
             return
         
     def clear(self):
@@ -222,12 +231,37 @@ class Comment(Resource):
                 self.contents = contents["topLevelComment"]
         except KeyError as e:
             self.contents = contents
+            
                 
         self.id = {'id':contents["id"]}
         self.snippet = self.contents["snippet"]
         self.video_id = {'videoId':video_id}
         self.text = html.unescape(self.snippet["textDisplay"])
         
+        return
+    
+class Video(Resource):
+    
+    def __init__(self, 
+                 video_id,
+                 contents=None
+                ):
+        self.method = videos().list()
+        self.contents = None
+        self.id = None
+        self.snippet = None
+            
+        if contents:
+            self.contents = contents
+            self.id = {'id':contents["videoId"]}
+            self.snippet = self.contents["snippet"]
+            self.text = html.unescape(self.snippet["textDisplay"])
+        
+        return
+    
+    def get_info():
+        return
+    
         
 def follow_thread(parent_id,
                   max_pages=3,
@@ -297,3 +331,63 @@ def thread_to_dataframe(thread):
           .join(auth_chid)
          )
     return df
+
+
+def get_top_videos(part=["snippet"],
+                   category=None,
+                   region=None,
+                   max_pages=5):
+    videos = []
+    page_token = None
+
+    youtube = build(SERVICE_NAME, 
+                    VERSION, 
+                    developerKey=DEV_KEY)
+
+    request = youtube.videos().list(
+        part=part,
+        chart="mostPopular",
+        regionCode=region,
+        videoCategoryId=category,
+        pageToken=page_token,
+    )
+    try:
+        response = request.execute()
+    except HttpError as e:
+        print('Error response status code : {0}, reason : {1}'
+              .format(e.status_code, e.error_details))
+    
+    videos += response["items"]
+    
+    try:
+        page_token = response["nextPageToken"]
+    except KeyError as e:
+        youtube.close()
+        return videos
+    
+    pages = 0
+    while pages <= max_pages:
+        request = youtube.videos().list(
+            part=part,
+            chart="mostPopular",
+            regionCode=region,
+            videoCategoryId=category,
+            pageToken=page_token,
+        )
+        try:
+            response = request.execute()
+        except HttpError as e:
+            print('Error response status code : {0}, reason : {1}'
+                  .format(e.status_code, e.error_details))
+            break
+        videos += response["items"]
+        try:
+            page_token = response["nextPageToken"]
+        except KeyError as e:
+            youtube.close()
+            return videos
+        pages += 1
+        
+    youtube.close()
+
+    return videos

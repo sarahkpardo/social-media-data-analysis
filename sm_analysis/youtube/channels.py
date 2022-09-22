@@ -9,6 +9,9 @@ project_veritas = "UCL9PlYkRD3Q-RZca6CCnPKw"
 sam_harris = "UCNAxrHudMfdzNi6NxruKPLw"
 sargon = "UC-yewGHQbNFpDrGM0diZOLA"
 lauren_southern = "UCla6APLHX6W3FeNLc8PYuvg"
+roaming_millennial = "UCLUrVTVTA3PnUFpYvpfMcpg"
+ben_shapiro = "UCnQC_G5Xsjhp9fEJKuIcrSw"
+
 
 # Left
 jacobin_magazine = "UCzGUT9PjV3SMBwjWXUYh4HA"
