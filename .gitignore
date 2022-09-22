@@ -139,12 +139,16 @@ cython_debug/
 
 # data files
 .csv
-/youtube_demos/auth.yml
-/twitter_demos/data/tweets/hashed_2020_12_armenia_202012_armenia_202012_tweets_csv_hashed.csv
-/twitter_demos/data/tweets/hashed_2020_12_GRU_202012_GRU_202012_tweets_csv_hashed.csv
-/twitter_demos/data/tweets/hashed_2020_12_IRA_202012_IRA_202012_tweets_csv_hashed.csv
-/twitter_demos/data/tweets/hashed_2020_12_iran_202012_iran_202012_tweets_csv_hashed.csv
-/twitter_demos/data/users/hashed_2020_12_armenia_202012_armenia_202012_users_csv_hashed.csv
-/twitter_demos/data/users/hashed_2020_12_GRU_202012_GRU_202012_users_csv_hashed.csv
-/twitter_demos/data/users/hashed_2020_12_IRA_202012_IRA_202012_users_csv_hashed.csv
-/twitter_demos/data/users/hashed_2020_12_iran_202012_iran_202012_users_csv_hashed.csv
+.json
+.yml
+/youtube/auth.yml
+/twitter/data/tweets/hashed_2020_12_armenia_202012_armenia_202012_tweets_csv_hashed.csv
+/twitter/data/tweets/hashed_2020_12_GRU_202012_GRU_202012_tweets_csv_hashed.csv
+/twitter/data/tweets/hashed_2020_12_IRA_202012_IRA_202012_tweets_csv_hashed.csv
+/twitter/data/tweets/hashed_2020_12_iran_202012_iran_202012_tweets_csv_hashed.csv
+/twitter/data/users/hashed_2020_12_armenia_202012_armenia_202012_users_csv_hashed.csv
+/twitter/data/users/hashed_2020_12_GRU_202012_GRU_202012_users_csv_hashed.csv
+/twitter/data/users/hashed_2020_12_IRA_202012_IRA_202012_users_csv_hashed.csv
+/twitter/data/users/hashed_2020_12_iran_202012_iran_202012_users_csv_hashed.csv
+/youtube/transcript_oauth.py
+/youtube/youtube_analysis.ipynb
